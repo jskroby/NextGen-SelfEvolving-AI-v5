@@ -2,49 +2,50 @@ name: "Next-Gen Self-Evolving AI Pipeline"
 
 on:
   schedule:
-    - cron: "0 3  * * *" # Runs every hour
+    - cron: "0 * * * *" # Runs every hour
   push:
     branches:
       - main
   workflow_dispatch:
 
-  jobs:
-    ai_build_deploy:
-      runs-on: ubuntu-latest
+jobs:
+  ai_build_deploy:
+    runs-on: ubuntu-latest
 
-      steps:
-        - name: "Checkout Repository"
-          uses: actions/checkout@v4
-        - name: "Install AI & Dev Dependencies"
-          run: |
-            sudo apt update && sudo apt install -y curl jq bc
-            curl -fsSL https://ollama.ai/install.sh | sh # Install ollama (local LLm)
-            pip install autogen crewai langchain reflexion deepseek-coder requests web3 pytest
+    steps:
+      - name: "Checkout Repository"
+        uses: actions/checkout@v4
 
-        - name: "AI Detects Profitable SAAS/API Project"
-          run: |
-            IDEA = $(curl -s "https://trends.google.com/trends/trendingsearches/daily?geo=US" | jq -r trendingSearches[0].title)
-            echo "IDEA=$IDEA" >> $GITHUB_ENV
+      - name: "Install AI & Dev Dependencies"
+        run: |
+          sudo apt update && sudo apt install -y curl jq bc
+          curl -fsSL https://ollama.ai/install.sh | sh # Install ollama (local LLM)
+          pip install autogen crewai langchain reflexion deepseek-coder requests web3 pytest
 
-        - name: "AI Generates Full-Stack Code"
-          run: |
-            echo "👷 DeepSeek-Coder is generating code for: $IEDA "
-            ollama run deepseek-coder "Build a serverless AI SAAS for $IEDA, using Python & Javascript."
-            test -d generated_code
-            mv generated_code/* .
-            echo "Code generation complete."
+      - name: "AI Detects Profitable SAAS/API Project"
+        run: |
+          IDEA=$(curl -s "https://trends.google.com/trends/trendingsearches/daily?geo=US" | jq -r '.trendingSearches[0].title')
+          echo "IDEA=$IDEA" >> $GITHUB_ENV
 
-        - name: "AI Runs Tests on Generated Code"
-          run: |
-            pytest generated_code/tests ||
-            (echo "Errors detected. AI will auto-fix." && python -c "import reflexion; reflexion.auto_fix()" && pytest generated_code/tests)
+      - name: "AI Generates Full-Stack Code"
+        run: |
+          echo "👷 DeepSeek-Coder is generating code for: $IDEA"
+          ollama run deepseek-coder "Build a serverless AI SAAS for $IDEA, using Python & Javascript."
+          test -d generated_code
+          mv generated_code/* .
+          echo "Code generation complete."
 
-        - name: "An AI Safe Commit Strategy"
-          run: |
-            git config --global user.name "AI Dev Bot"
-            git config --global user.email "ai-bot@example.com"
-            git fetch origin main
-            git checkout main
-            git add .
-            git commit -m "AI generated SAAS for $IDEA"
-            git push origin main
+      - name: "AI Runs Tests on Generated Code"
+        run: |
+          pytest generated_code/tests ||
+          (echo "Errors detected. AI will auto-fix." && python -c "import reflexion; reflexion.auto_fix()" && pytest generated_code/tests)
+
+      - name: "An AI Safe Commit Strategy"
+        run: |
+          git config --global user.name "AI Dev Bot"
+          git config --global user.email "ai-bot@example.com"
+          git fetch origin main
+          git checkout main
+          git add .
+          git commit -m "AI generated SAAS for $IDEA"
+          git push origin main
