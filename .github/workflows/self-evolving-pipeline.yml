@@ -2,7 +2,7 @@ name: "Next-Gen Self-Evolving AI Pipeline"
 
 on:
   schedule:
-    - cron: "0 3 * * * *" # Runs every hour
+    - cron: "0 3  * * *" # Runs every hour
   push:
     branches:
       - main
